@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { requireAdmin, requireAuthentication } from '../middlewares/require-authentication.js'
 
 import {
   cancelVehicleReservation,
@@ -17,7 +18,7 @@ export const vehiclesRouter = Router()
 vehiclesRouter.get('/', listVehicles)
 vehiclesRouter.get('/:id', getVehicle)
 vehiclesRouter.get('/:id/current-usage', getVehicleCurrentUsage)
-vehiclesRouter.get('/:id/usages', getVehicleUsages)
+vehiclesRouter.get('/:id/usages', requireAuthentication, requireAdmin, getVehicleUsages)
 vehiclesRouter.post('/:id/usage/start', startVehicleUsage)
 vehiclesRouter.post('/:id/usage/:usageId/finish', finishVehicleUsage)
 vehiclesRouter.get('/:id/reservations', getVehicleReservations)

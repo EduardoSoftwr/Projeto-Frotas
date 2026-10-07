@@ -5,6 +5,7 @@ import { cancelVehicleReservation, createVehicleReservation, getCurrentUsage, ge
 import { clearUsageSession, readUsageSession, writeUsageSession, type UsageSession } from '../services/usageSession'
 import { removeStoredValue, storageKeys } from '../utils/storage'
 import { FleetContext, type FleetState } from './FleetContext'
+import useAuth from './useAuth'
 
 type FleetAction =
   | { type: 'reservations/loaded'; reservations: Reservation[] }
@@ -54,6 +55,7 @@ function toUiReservation(reservation: ApiReservation): Reservation {
 }
 
 function FleetProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth()
   const [state, dispatch] = useReducer(fleetReducer, undefined, createInitialState)
   const [apiVehicle, setApiVehicle] = useState<ApiVehicle | null>(null)
   const [currentUsage, setCurrentUsage] = useState<CurrentUsage | null>(null)
@@ -74,6 +76,12 @@ function FleetProvider({ children }: { children: ReactNode }) {
 
   const refreshUsages = useCallback(async (vehicleId: string) => {
     const version = ++usagesRequestVersion.current
+    if (user?.role !== 'ADMIN' && user?.role !== 'GESTOR') {
+      dispatch({ type: 'usages/loaded', usages: [] })
+      setUsagesError('')
+      setUsagesLoading(false)
+      return
+    }
     try {
       const usages = await getVehicleUsages(vehicleId)
       if (version === usagesRequestVersion.current) {
@@ -87,7 +95,7 @@ function FleetProvider({ children }: { children: ReactNode }) {
     } finally {
       if (version === usagesRequestVersion.current) setUsagesLoading(false)
     }
-  }, [])
+  }, [user])
 
   const refreshVehicle = useCallback(async () => {
     const version = ++requestVersion.current

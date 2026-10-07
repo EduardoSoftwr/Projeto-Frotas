@@ -6,9 +6,23 @@ import { apiRouter } from './routes/index.js'
 
 export function createApp() {
   const app = express()
-  const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173'
+  const allowedOrigins = new Set([
+    'https://projeto-frotas.pages.dev',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+    ...(process.env.FRONTEND_URL ?? '').split(',').map((origin) => origin.trim()).filter(Boolean),
+  ])
 
-  app.use(cors({ origin: frontendUrl }))
+  app.use(cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, origin ?? true)
+        return
+      }
+      callback(new Error('Origem não permitida.'))
+    },
+    credentials: true,
+  }))
   app.use(express.json())
   app.use('/api', apiRouter)
   app.use(notFoundHandler)

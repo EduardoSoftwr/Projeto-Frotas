@@ -48,7 +48,7 @@ function FleetApplication() {
 }
 
 function App() {
-  return <FleetProvider><AuthProvider><FleetApplication /></AuthProvider></FleetProvider>
+  return <AuthProvider><FleetProvider><FleetApplication /></FleetProvider></AuthProvider>
 }
 
 export default App

@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import Icon from '../components/Icon'
 import useAuth from '../context/useAuth'
+import { getFriendlyApiError } from '../services/api'
 
 interface LoginPageProps {
   onAuthenticated: () => void
@@ -11,15 +12,26 @@ function LoginPage({ onAuthenticated }: LoginPageProps) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!login(username, password)) {
-      setError('Usuário ou senha inválidos.')
-      return
+    setIsSubmitting(true)
+    try {
+      const authenticated = await login(username, password)
+      if (!authenticated) {
+        setError('Usuário ou senha inválidos.')
+        setPassword('')
+        return
+      }
+      setPassword('')
+      setError('')
+      onAuthenticated()
+    } catch (requestError) {
+      setError(getFriendlyApiError(requestError, 'Não foi possível validar o acesso. Tente novamente.'))
+    } finally {
+      setIsSubmitting(false)
     }
-    setError('')
-    onAuthenticated()
   }
 
   return (
@@ -32,16 +44,15 @@ function LoginPage({ onAuthenticated }: LoginPageProps) {
         <form className="login-form" noValidate onSubmit={handleSubmit}>
           <div className="form-field">
             <label htmlFor="login-username">Usuário</label>
-            <input id="login-username" autoComplete="username" autoFocus value={username} onChange={(event) => { setUsername(event.target.value); setError('') }} placeholder="Digite seu usuário" />
+            <input id="login-username" autoComplete="username" autoFocus required value={username} onChange={(event) => { setUsername(event.target.value); setError('') }} placeholder="Digite seu usuário" />
           </div>
           <div className="form-field">
             <label htmlFor="login-password">Senha</label>
-            <input id="login-password" type="password" autoComplete="current-password" value={password} onChange={(event) => { setPassword(event.target.value); setError('') }} placeholder="Digite sua senha" />
+            <input id="login-password" type="password" autoComplete="current-password" required value={password} onChange={(event) => { setPassword(event.target.value); setError('') }} placeholder="Digite sua senha" />
           </div>
           {error && <p className="login-error" role="alert">{error}</p>}
-          <button className="button button--primary login-submit" type="submit">Entrar <Icon name="arrow" size={18} /></button>
+          <button className="button button--primary login-submit" type="submit" disabled={isSubmitting}>{isSubmitting ? 'Validando…' : 'Entrar'} <Icon name="arrow" size={18} /></button>
         </form>
-        <p className="prototype-note">Acesso provisório de protótipo: <strong>admin / admin</strong></p>
       </section>
       <aside className="login-aside" aria-hidden="true">
         <span className="login-aside__mark"><Icon name="route" size={22} /></span>

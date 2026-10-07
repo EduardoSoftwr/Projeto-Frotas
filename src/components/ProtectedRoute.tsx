@@ -11,7 +11,7 @@ interface ProtectedRouteProps {
 }
 
 function ProtectedRoute({ allowedRoles, page = 'history', onNavigate, children }: ProtectedRouteProps) {
-  const { user } = useAuth()
+  const { user, isAuthLoading } = useAuth()
 
   if (user && allowedRoles.includes(user.role)) return children
 
@@ -20,9 +20,9 @@ function ProtectedRoute({ allowedRoles, page = 'history', onNavigate, children }
       <section className="access-denied panel" role="alert">
         <span className="access-denied__icon"><IconLock /></span>
         <p className="eyebrow">ACESSO RESTRITO</p>
-        <h1>Acesso não autorizado.</h1>
-        <p>Seu perfil não tem permissão para acessar esta área.</p>
-        <div className="access-denied__actions"><button className="button button--primary" type="button" onClick={() => onNavigate('dashboard')}>Voltar para o Dashboard</button><button className="button button--secondary" type="button" onClick={() => onNavigate('login')}>Entrar como administrador</button></div>
+        <h1>{isAuthLoading ? 'Validando sessão…' : user ? 'Acesso não autorizado.' : 'Entre para continuar.'}</h1>
+        <p>{isAuthLoading ? 'Consultando a sessão com o servidor.' : user ? 'Seu perfil não tem permissão para acessar esta área.' : 'Esta área está disponível somente para usuários autorizados.'}</p>
+        {!isAuthLoading && <div className="access-denied__actions"><button className="button button--primary" type="button" onClick={() => onNavigate(user ? 'dashboard' : 'login')}>{user ? 'Voltar para o Dashboard' : 'Entrar'}</button>{user && <button className="button button--secondary" type="button" onClick={() => onNavigate('login')}>Trocar usuário</button>}</div>}
       </section>
     </AppLayout>
   )

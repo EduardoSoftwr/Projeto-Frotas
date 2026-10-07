@@ -1,7 +1,5 @@
 export const storageKeys = {
   legacyFleetSnapshot: 'frota-fleet-data-v1',
-  authSession: 'frota-auth-session',
-  authUsers: 'frota-auth-users-v1',
 } as const
 
 type Validator<T> = (value: unknown) => value is T

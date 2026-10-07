@@ -9,6 +9,7 @@ import type {
   Usage,
   Vehicle,
 } from '../types/api'
+import type { AuthenticatedUser } from '../types/auth'
 
 const apiBaseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:3001/api').replace(/\/+$/, '')
 
@@ -27,6 +28,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   try {
     response = await fetch(`${apiBaseUrl}${path}`, {
       ...init,
+      credentials: 'include',
       headers: {
         ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
         ...init?.headers,
@@ -46,6 +48,40 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   return payload as T
+}
+
+interface AuthUserResponse {
+  id: string
+  username: string
+  email: string
+  role: 'ADMIN' | 'USER'
+}
+
+function toAuthenticatedUser(user: AuthUserResponse): AuthenticatedUser {
+  return {
+    id: user.id,
+    username: user.username,
+    name: user.username,
+    email: user.email,
+    role: user.role === 'ADMIN' ? 'ADMIN' : 'USUARIO',
+  }
+}
+
+export async function loginAdmin(username: string, password: string) {
+  const result = await request<{ user: AuthUserResponse }>('/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ username, password }),
+  })
+  return toAuthenticatedUser(result.user)
+}
+
+export async function getAuthenticatedUser() {
+  const result = await request<{ user: AuthUserResponse }>('/auth/me')
+  return toAuthenticatedUser(result.user)
+}
+
+export function logoutAdmin() {
+  return request<{ message: string }>('/auth/logout', { method: 'POST' })
 }
 
 export function getFriendlyApiError(error: unknown, fallback = 'Não foi possível concluir a operação. Tente novamente.') {

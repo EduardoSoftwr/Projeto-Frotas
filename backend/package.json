@@ -9,10 +9,12 @@
     "start": "node dist/src/server.js",
     "prisma:migrate": "prisma migrate dev",
     "prisma:generate": "prisma generate",
-    "prisma:seed": "prisma db seed"
+    "prisma:seed": "prisma db seed",
+    "admin:reset-password": "tsx src/scripts/reset-admin-password.ts"
   },
   "dependencies": {
     "@prisma/client": "6.12.0",
+    "argon2": "^0.45.1",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
     "express": "^5.1.0"
