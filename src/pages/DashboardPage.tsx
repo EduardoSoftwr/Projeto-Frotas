@@ -5,6 +5,7 @@ import Icon from '../components/Icon'
 import RecentUsages from '../components/RecentUsages'
 import VehicleAgenda from '../components/VehicleAgenda'
 import VehicleSummary from '../components/VehicleSummary'
+import UsageIncidentDialog from '../components/UsageIncidentDialog'
 import useFleet from '../context/useFleet'
 import { findActiveReservationConflict, formatReservationDate, reservationStartDate } from '../utils/reservations'
 
@@ -13,8 +14,9 @@ interface DashboardPageProps {
 }
 
 function DashboardPage({ onNavigate }: DashboardPageProps) {
-  const { vehicle, recentUsages, recentUsagesLoading, recentUsagesError, activeUsage, canReturnUsage, reservations, createReservation, cancelReservation, canCancelReservation, reservationsLoading, reservationsError } = useFleet()
+  const { vehicle, recentUsages, recentUsagesLoading, recentUsagesError, activeUsage, canReturnUsage, reportUsageIncident, reservations, createReservation, cancelReservation, canCancelReservation, reservationsLoading, reservationsError } = useFleet()
   const [notice, setNotice] = useState('')
+  const [isIncidentDialogOpen, setIsIncidentDialogOpen] = useState(false)
   const [activeVehicleTab, setActiveVehicleTab] = useState<'overview' | 'agenda'>('overview')
   const [now, setNow] = useState(() => new Date())
   const nextReservation = reservations
@@ -65,7 +67,7 @@ function DashboardPage({ onNavigate }: DashboardPageProps) {
                   ? <button className="button button--primary" type="button" onClick={() => onNavigate('new-usage')}><Icon name="plus" size={19} /> Nova utilização</button>
                   : vehicle.status === 'in_use'
                     ? canReturnUsage
-                      ? <button className="button button--primary" type="button" onClick={() => onNavigate('return-usage')}><Icon name="arrow" size={18} /> Devolver veículo</button>
+                      ? <><button className="button button--primary" type="button" onClick={() => onNavigate('return-usage')}><Icon name="arrow" size={18} /> Devolver veículo</button><button className="usage-incident-trigger" type="button" aria-label="Reportar problema ou adicionar observação" title="Reportar problema ou adicionar observação" onClick={() => setIsIncidentDialogOpen(true)}><Icon name="alert" size={20} /></button></>
                       : <span className="vehicle-in-use-note">Veículo em utilização por {activeUsage?.user ?? 'outro usuário'}.</span>
                     : <span className="vehicle-in-use-note">Veículo indisponível para utilização.</span>}
                 <button className="button button--secondary" type="button" onClick={() => onNavigate('history')}><Icon name="history" size={18} /> Histórico</button>
@@ -81,6 +83,14 @@ function DashboardPage({ onNavigate }: DashboardPageProps) {
           <footer className="page-footer"><span>Gestão de Frota</span><span>Visão geral do veículo</span></footer>
           </div>
           )}
+          {isIncidentDialogOpen && canReturnUsage && <UsageIncidentDialog
+            onClose={() => setIsIncidentDialogOpen(false)}
+            onSubmit={reportUsageIncident}
+            onSuccess={() => {
+              setIsIncidentDialogOpen(false)
+              setNotice('Ocorrência enviada com sucesso.')
+            }}
+          />}
     </AppLayout>
   )
 }

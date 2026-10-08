@@ -3,12 +3,14 @@ import type {
   ApiReservation,
   CreateReservationPayload,
   CreateReservationResponse,
+  CreateUsageIncidentPayload,
   FinishUsagePayload,
   FinishUsageResponse,
   RecentVehicleUsage,
   StartUsagePayload,
   StartUsageResponse,
   Usage,
+  UsageIncidentResponse,
   Vehicle,
 } from '../types/api'
 import type { AuthenticatedUser } from '../types/auth'
@@ -163,6 +165,13 @@ export function startVehicleUsage(vehicleId: string, payload: StartUsagePayload)
 export function finishVehicleUsage(vehicleId: string, usageId: string, payload: FinishUsagePayload) {
   return request<FinishUsageResponse>(
     `/vehicles/${encodeURIComponent(vehicleId)}/usage/${encodeURIComponent(usageId)}/finish`,
+    { method: 'POST', body: JSON.stringify(payload) },
+  )
+}
+
+export function createVehicleUsageIncident(vehicleId: string, usageId: string, payload: CreateUsageIncidentPayload) {
+  return request<UsageIncidentResponse>(
+    `/vehicles/${encodeURIComponent(vehicleId)}/usage/${encodeURIComponent(usageId)}/incidents`,
     { method: 'POST', body: JSON.stringify(payload) },
   )
 }

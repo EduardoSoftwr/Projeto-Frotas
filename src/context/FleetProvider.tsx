@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState, type ReactNode } from 'react'
 import type { ApiReservation, CreateReservationPayload, Vehicle as ApiVehicle, CurrentUsage, StartUsagePayload } from '../types/api'
 import type { RecentUsage, Reservation, Usage, Vehicle } from '../types/fleet'
-import { cancelVehicleReservation, createVehicleReservation, getCurrentUsage, getFriendlyApiError, getFriendlyReservationApiError, getRecentVehicleUsages, getVehicles, getVehicleReservations, getVehicleUsages, startVehicleUsage, finishVehicleUsage, ApiError, toUiRecentUsage, toUiUsage } from '../services/api'
+import { cancelVehicleReservation, createVehicleReservation, createVehicleUsageIncident, getCurrentUsage, getFriendlyApiError, getFriendlyReservationApiError, getRecentVehicleUsages, getVehicles, getVehicleReservations, getVehicleUsages, startVehicleUsage, finishVehicleUsage, ApiError, toUiRecentUsage, toUiUsage } from '../services/api'
 import { clearUsageSession, readUsageSession, writeUsageSession, type UsageSession } from '../services/usageSession'
 import { readStoredValue, removeStoredValue, storageKeys, writeStoredValue } from '../utils/storage'
 import { FleetContext, type FleetState } from './FleetContext'
@@ -236,6 +236,18 @@ function FleetProvider({ children }: { children: ReactNode }) {
   const canReturnUsage = Boolean(activeUsage && apiVehicleUi && usageSession
     && usageSession.vehicleId === apiVehicleUi.id && usageSession.usageId === activeUsage.id)
 
+  const reportUsageIncident = useCallback(async (description: string) => {
+    const vehicle = apiVehicleRef.current
+    const session = usageSession
+    if (!canReturnUsage || !vehicle || !currentUsage || !session) {
+      throw new ApiError(403, 'Este dispositivo não possui autorização para relatar nesta utilização.')
+    }
+    await createVehicleUsageIncident(vehicle.id, currentUsage.id, {
+      description,
+      sessionToken: session.sessionToken,
+    })
+  }, [canReturnUsage, currentUsage, usageSession])
+
   async function createReservation(payload: CreateReservationPayload) {
     const vehicle = apiVehicleRef.current
     if (!vehicle) throw new ApiError(0, 'Aguarde o carregamento do veículo e tente novamente.')
@@ -289,6 +301,7 @@ function FleetProvider({ children }: { children: ReactNode }) {
     refreshVehicle,
     startUsage,
     finishUsage,
+    reportUsageIncident,
     createReservation,
     cancelReservation,
     canCancelReservation,

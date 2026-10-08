@@ -13,6 +13,7 @@ import {
   listVehiclesService,
   startUsageService,
 } from '../services/vehicle.service.js'
+import { createUsageIncidentService } from '../services/usage-incident.service.js'
 
 function firstValue(value: string | string[] | undefined) {
   if (Array.isArray(value)) {
@@ -87,6 +88,17 @@ export const finishVehicleUsage: RequestHandler = async (request, response, next
     const usageId = firstValue(request.params.usageId)
     const result = await finishUsageService(id, usageId, request.body)
     response.status(200).json(result)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const createVehicleUsageIncident: RequestHandler = async (request, response, next) => {
+  try {
+    const vehicleId = firstValue(request.params.id)
+    const usageId = firstValue(request.params.usageId)
+    const incident = await createUsageIncidentService(vehicleId, usageId, request.body)
+    response.status(201).json({ incident })
   } catch (error) {
     next(error)
   }

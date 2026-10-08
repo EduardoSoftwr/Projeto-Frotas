@@ -62,6 +62,22 @@ export interface FinishUsageResponse {
   vehicle: Vehicle
 }
 
+export interface CreateUsageIncidentPayload {
+  description: string
+  sessionToken: string
+}
+
+export interface UsageIncidentResponse {
+  incident: {
+    id: string
+    usageId: string
+    vehicleId: string
+    userName: string
+    description: string
+    createdAt: string
+  }
+}
+
 export type ApiReservationStatus = 'ACTIVE' | 'CANCELLED' | 'COMPLETED' | 'NOT_USED'
 
 export interface ApiReservation {

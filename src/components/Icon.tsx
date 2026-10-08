@@ -1,4 +1,4 @@
-export type IconName = 'car' | 'plus' | 'clock' | 'route' | 'history' | 'calendar' | 'pin' | 'user' | 'building' | 'arrow' | 'logout'
+export type IconName = 'car' | 'plus' | 'clock' | 'route' | 'history' | 'calendar' | 'pin' | 'user' | 'building' | 'arrow' | 'logout' | 'alert'
 
 interface IconProps {
   name: IconName
@@ -19,6 +19,7 @@ function Icon({ name, size = 20 }: IconProps) {
       {name === 'building' && <><rect x="4" y="3" width="16" height="18" rx="1" /><path d="M9 21v-4h6v4M8 7h1m6 0h1M8 11h1m6 0h1" /></>}
       {name === 'arrow' && <path d="M5 12h14m-6-6 6 6-6 6" />}
       {name === 'logout' && <><path d="M10 17l5-5-5-5m5 5H3" /><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6" /></>}
+      {name === 'alert' && <><path d="M12 3 2.8 20h18.4L12 3Z" /><path d="M12 9v5m0 3h.01" /></>}
     </svg>
   )
 }

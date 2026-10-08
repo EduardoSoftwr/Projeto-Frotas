@@ -19,6 +19,7 @@ export interface FleetContextValue extends FleetState {
   refreshVehicle: () => Promise<unknown>
   startUsage: (payload: StartUsagePayload) => Promise<void>
   finishUsage: (usageId: string, endKm: number) => Promise<void>
+  reportUsageIncident: (description: string) => Promise<void>
   createReservation: (payload: CreateReservationPayload) => Promise<void>
   cancelReservation: (reservationId: string) => Promise<void>
   canCancelReservation: (reservationId: string, isFuture: boolean) => boolean

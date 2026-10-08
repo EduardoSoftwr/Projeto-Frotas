@@ -77,6 +77,9 @@
 .vehicle-card__live-dot--in-use { background: #47779b; }
 
 .action-row { display: flex; gap: 9px; }
+.usage-incident-trigger { display: inline-grid; width: 42px; min-height: 42px; flex: 0 0 auto; place-items: center; color: #b43f36; background: #fff7f6; border: 1px solid #f0d8d5; border-radius: 6px; }
+.usage-incident-trigger:hover { color: #922d26; background: #ffefed; border-color: #e9c3be; }
+.usage-incident-trigger:focus-visible { outline: 2px solid rgb(180 63 54 / 25%); outline-offset: 2px; }
 .button { display: inline-flex; min-height: 42px; align-items: center; justify-content: center; gap: 9px; padding: 0 17px; border: 1px solid transparent; border-radius: 6px; font-size: 12px; font-weight: 600; text-decoration: none; transition: transform 140ms ease, background 140ms ease, box-shadow 140ms ease; }
 .button:active { transform: translateY(1px); }
 .button--primary { color: #fff; background: var(--green); box-shadow: 0 3px 7px rgb(25 123 92 / 16%); }
@@ -273,6 +276,12 @@
 .confirmation-list dd { margin: 0; color: #34473c; font-size: 11px; font-weight: 600; text-align: right; overflow-wrap: anywhere; }
 .confirmation-dialog__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 17px; }
 .confirmation-dialog__actions .button { min-height: 40px; padding: 0 13px; font-size: 11px; }
+.usage-incident-dialog__icon { display: grid; width: 34px; height: 34px; margin-bottom: 13px; place-items: center; color: #fff; background: #b43f36; clip-path: polygon(50% 0, 100% 100%, 0 100%); font-size: 18px; font-weight: 700; }
+.usage-incident-dialog h2 { max-width: 340px; font-size: 18px; line-height: 1.35; }
+.usage-incident-form { display: grid; gap: 9px; margin-top: 18px; }
+.usage-incident-form label { color: #4e5d55; font-size: 11px; font-weight: 600; }
+.usage-incident-form textarea { width: 100%; min-height: 118px; resize: vertical; padding: 10px 11px; color: #35463d; background: #fff; border: 1px solid #dfe7e2; border-radius: 5px; font: inherit; font-size: 12px; line-height: 1.5; }
+.usage-incident-form textarea:focus { outline: 2px solid rgb(41 130 91 / 14%); border-color: #63a285; }
 .return-usage-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0 0 19px; }
 .return-usage-details > div { display: grid; gap: 4px; padding: 10px; background: #f8faf9; border: 1px solid #edf1ee; border-radius: 5px; }
 .return-usage-details span { color: #85928b; font-size: 10px; }
