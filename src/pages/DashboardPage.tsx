@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import AppLayout, { type AppPage } from '../components/AppLayout'
-import CurrentSituation from '../components/CurrentSituation'
 import Icon from '../components/Icon'
 import RecentUsages from '../components/RecentUsages'
 import VehicleAgenda from '../components/VehicleAgenda'
@@ -60,7 +59,7 @@ function DashboardPage({ onNavigate }: DashboardPageProps) {
           <div className="dashboard-tab-panel" role="tabpanel">
           <div className="dashboard-grid">
             <div className="dashboard-grid__main">
-              <VehicleSummary vehicle={vehicle} />
+              <VehicleSummary vehicle={vehicle} activeUsage={activeUsage} />
               {nextReservation && <div className="next-reservation"><span className="next-reservation__label">Próxima reserva</span><strong>{formatNextReservation()}</strong>{nextReservation.destination && <span className="next-reservation__destination">{nextReservation.destination}</span>}</div>}
               <div className="action-row">
                 {vehicle.status === 'available'
@@ -70,15 +69,10 @@ function DashboardPage({ onNavigate }: DashboardPageProps) {
                       ? <><button className="button button--primary" type="button" onClick={() => onNavigate('return-usage')}><Icon name="arrow" size={18} /> Devolver veículo</button><button className="usage-incident-trigger" type="button" aria-label="Reportar problema ou adicionar observação" title="Reportar problema ou adicionar observação" onClick={() => setIsIncidentDialogOpen(true)}><Icon name="alert" size={20} /></button></>
                       : <span className="vehicle-in-use-note">Veículo em utilização por {activeUsage?.user ?? 'outro usuário'}.</span>
                     : <span className="vehicle-in-use-note">Veículo indisponível para utilização.</span>}
-                <button className="button button--secondary" type="button" onClick={() => onNavigate('history')}><Icon name="history" size={18} /> Histórico</button>
               </div>
               {notice && <div className="inline-notice" role="status"><span>{notice}</span><button type="button" aria-label="Fechar aviso" onClick={() => setNotice('')}>Fechar</button></div>}
               <RecentUsages usages={recentUsages} loading={recentUsagesLoading} error={recentUsagesError} />
             </div>
-
-            <aside className="dashboard-grid__aside">
-              <CurrentSituation status={vehicle.status} activeUsage={activeUsage} />
-            </aside>
           </div>
           <footer className="page-footer"><span>Gestão de Frota</span><span>Visão geral do veículo</span></footer>
           </div>

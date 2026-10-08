@@ -49,9 +49,8 @@
 .page-heading__subtitle { margin: 6px 0 0; color: #7b8983; font-size: 13px; }
 .page-heading__date { display: flex; align-items: center; gap: 8px; padding-bottom: 3px; color: #7b8983; font-size: 11px; }
 
-.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1fr) 272px; align-items: start; gap: 22px; }
+.dashboard-grid { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; gap: 22px; }
 .dashboard-grid__main { display: grid; min-width: 0; gap: 17px; }
-.dashboard-grid__aside { display: grid; gap: 15px; }
 .vehicle-card { overflow: hidden; padding: 21px 23px 0; background: var(--paper); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); animation: rise-in 420ms 40ms ease both; }
 .vehicle-card__topline { display: flex; align-items: center; justify-content: space-between; }
 .vehicle-card__id { color: #9ba7a1; font-size: 10px; font-weight: 600; letter-spacing: .65px; }
@@ -66,6 +65,11 @@
 .vehicle-card__fact--km { min-width: 99px; }
 .vehicle-card__fact--km strong { color: #25332d; font-family: 'Manrope', sans-serif; font-size: 21px; font-weight: 700; line-height: 1; }
 .vehicle-card__fact--km strong span { color: #7c8983; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 500; }
+.vehicle-card__usage { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px 20px; margin: 0; padding: 0 0 19px; }
+.vehicle-card__usage > div { display: grid; min-width: 0; align-content: start; gap: 6px; }
+.vehicle-card__usage dt { display: flex; align-items: center; gap: 6px; color: #78867f; font-size: 10px; }
+.vehicle-card__usage dt svg { flex: 0 0 auto; color: #9aa79f; }
+.vehicle-card__usage dd { overflow-wrap: anywhere; margin: 0; color: #35463d; font-size: 12px; font-weight: 600; }
 .status-badge { display: inline-flex; align-items: center; gap: 7px; padding: 5px 9px; color: #18744f; background: #eaf6ef; border: 1px solid #dcefe3; border-radius: 4px; font-size: 11px; font-weight: 600; line-height: 1.1; white-space: nowrap; }
 .status-badge__dot { width: 6px; height: 6px; background: currentColor; border-radius: 50%; }
 .status-badge--reserved { color: #986b16; background: #fcf5e6; border-color: #f4ebd4; }
@@ -106,14 +110,6 @@
 .section-heading .eyebrow { margin: 0 0 5px; }
 .section-heading h2 { font-size: 14px; }
 .section-heading__icon { display: grid; width: 31px; height: 31px; place-items: center; color: #6c8b79; background: #f0f6f2; border-radius: 5px; }
-.situation-panel { padding: 19px 18px 8px; }
-.situation-status { display: flex; align-items: center; justify-content: space-between; margin: 18px 0 5px; padding: 0 0 14px; border-bottom: 1px solid #f0f3f1; color: #77857e; font-size: 11px; }
-.situation-list { margin: 0; }
-.situation-list > div { display: flex; min-height: 39px; align-items: center; justify-content: space-between; gap: 10px; border-bottom: 1px solid #f2f4f3; }
-.situation-list > div:last-child { border-bottom: 0; }
-.situation-list dt { display: flex; align-items: center; gap: 8px; color: #78867f; font-size: 11px; }
-.situation-list dt svg { color: #9aa79f; }
-.situation-list dd { margin: 0; color: #99a49e; font-size: 12px; }
 .recent-usages { overflow: hidden; animation: rise-in 420ms 140ms ease both; }
 .recent-usages__heading { padding: 15px 18px 12px; }
 .recent-usages__heading .eyebrow { margin-bottom: 4px; }
@@ -298,7 +294,6 @@
   .dashboard-content { padding-right: 28px; padding-left: 28px; }
   .topbar { padding-right: 28px; padding-left: 28px; }
   .dashboard-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
-  .dashboard-grid__aside { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
   .new-usage-layout { grid-template-columns: minmax(0, 1fr); }
   .new-usage-aside { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
   .metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -318,7 +313,7 @@
   .sidebar__bottom > span:last-child { display: none; }
   .workspace { margin-left: 68px; }
   .dashboard-grid { grid-template-columns: minmax(0, 1fr); }
-  .dashboard-grid__aside { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  .vehicle-card__usage { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 600px) {
   .login-shell { display: flex; min-height: 100svh; flex-direction: column; justify-content: center; padding: 20px; background: #f4f7f5; }
@@ -358,7 +353,7 @@
   .metric-card__label { font-size: 9px; }
   .metric-card__value { font-size: 20px; }
   .metric-card__value--small { font-size: 10px; }
-  .dashboard-grid__aside { grid-template-columns: minmax(0, 1fr); }
+  .vehicle-card__usage { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px 12px; }
   .section-heading--history { padding: 16px 14px 14px; }
   .usage-table { min-width: 660px; }
   .page-footer { padding-top: 15px; }
