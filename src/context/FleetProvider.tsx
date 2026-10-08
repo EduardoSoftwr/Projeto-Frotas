@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState, type ReactNode } from 'react'
 import type { ApiReservation, CreateReservationPayload, Vehicle as ApiVehicle, CurrentUsage, StartUsagePayload } from '../types/api'
-import type { Reservation, Usage, Vehicle } from '../types/fleet'
-import { cancelVehicleReservation, createVehicleReservation, getCurrentUsage, getFriendlyApiError, getFriendlyReservationApiError, getVehicles, getVehicleReservations, getVehicleUsages, startVehicleUsage, finishVehicleUsage, ApiError, toUiUsage } from '../services/api'
+import type { RecentUsage, Reservation, Usage, Vehicle } from '../types/fleet'
+import { cancelVehicleReservation, createVehicleReservation, getCurrentUsage, getFriendlyApiError, getFriendlyReservationApiError, getRecentVehicleUsages, getVehicles, getVehicleReservations, getVehicleUsages, startVehicleUsage, finishVehicleUsage, ApiError, toUiRecentUsage, toUiUsage } from '../services/api'
 import { clearUsageSession, readUsageSession, writeUsageSession, type UsageSession } from '../services/usageSession'
 import { removeStoredValue, storageKeys } from '../utils/storage'
 import { FleetContext, type FleetState } from './FleetContext'
@@ -10,17 +10,20 @@ import useAuth from './useAuth'
 type FleetAction =
   | { type: 'reservations/loaded'; reservations: Reservation[] }
   | { type: 'usages/loaded'; usages: Usage[] }
+  | { type: 'recent-usages/loaded'; usages: RecentUsage[] }
   | { type: 'test-data/reset' }
 
 function fleetReducer(state: FleetState, action: FleetAction): FleetState {
   if (action.type === 'test-data/reset') return createInitialState()
   if (action.type === 'usages/loaded') return { ...state, usages: action.usages }
+  if (action.type === 'recent-usages/loaded') return { ...state, recentUsages: action.usages }
   return { ...state, reservations: action.reservations }
 }
 
 function createInitialState(): FleetState {
   return {
     usages: [],
+    recentUsages: [],
     reservations: [],
   }
 }
@@ -63,11 +66,14 @@ function FleetProvider({ children }: { children: ReactNode }) {
   const [loadError, setLoadError] = useState('')
   const [usagesLoading, setUsagesLoading] = useState(true)
   const [usagesError, setUsagesError] = useState('')
+  const [recentUsagesLoading, setRecentUsagesLoading] = useState(true)
+  const [recentUsagesError, setRecentUsagesError] = useState('')
   const [reservationsLoading, setReservationsLoading] = useState(true)
   const [reservationsError, setReservationsError] = useState('')
   const apiVehicleRef = useRef<ApiVehicle | null>(null)
   const requestVersion = useRef(0)
   const usagesRequestVersion = useRef(0)
+  const recentUsagesRequestVersion = useRef(0)
   const reservationRequestVersion = useRef(0)
 
   useEffect(() => {
@@ -97,6 +103,23 @@ function FleetProvider({ children }: { children: ReactNode }) {
     }
   }, [user])
 
+  const refreshRecentUsages = useCallback(async (vehicleId: string) => {
+    const version = ++recentUsagesRequestVersion.current
+    try {
+      const usages = await getRecentVehicleUsages(vehicleId)
+      if (version === recentUsagesRequestVersion.current) {
+        dispatch({ type: 'recent-usages/loaded', usages: usages.map(toUiRecentUsage) })
+        setRecentUsagesError('')
+      }
+    } catch (error) {
+      if (version === recentUsagesRequestVersion.current) {
+        setRecentUsagesError(getFriendlyApiError(error, 'Não foi possível carregar as últimas utilizações.'))
+      }
+    } finally {
+      if (version === recentUsagesRequestVersion.current) setRecentUsagesLoading(false)
+    }
+  }, [])
+
   const refreshVehicle = useCallback(async () => {
     const version = ++requestVersion.current
     const vehicles = await getVehicles()
@@ -111,8 +134,9 @@ function FleetProvider({ children }: { children: ReactNode }) {
       setLoadError('')
     }
     void refreshUsages(foundVehicle.id)
+    void refreshRecentUsages(foundVehicle.id)
     return { vehicle: foundVehicle, currentUsage: activeUsage }
-  }, [refreshUsages])
+  }, [refreshRecentUsages, refreshUsages])
 
   const refreshReservations = useCallback(async () => {
     const vehicle = apiVehicleRef.current
@@ -235,6 +259,8 @@ function FleetProvider({ children }: { children: ReactNode }) {
     canReturnUsage,
     usagesLoading,
     usagesError,
+    recentUsagesLoading,
+    recentUsagesError,
     refreshVehicle,
     startUsage,
     finishUsage,

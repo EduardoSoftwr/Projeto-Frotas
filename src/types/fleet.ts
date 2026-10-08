@@ -38,3 +38,10 @@ export interface Usage {
   reservationId?: string
 }
 
+export interface RecentUsage {
+  id: string
+  user: string
+  department: string
+  destination: string
+  endDateTime: string
+}

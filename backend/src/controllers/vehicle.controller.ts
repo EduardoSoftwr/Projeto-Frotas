@@ -5,6 +5,7 @@ import {
   createReservationService,
   finishUsageService,
   getCurrentUsageByVehicleService,
+  getRecentVehicleUsagesService,
   getVehicleByIdService,
   getVehicleUsagesService,
   listReservationsService,
@@ -44,6 +45,16 @@ export const getVehicleCurrentUsage: RequestHandler = async (request, response, 
     const id = firstValue(request.params.id)
     const usage = await getCurrentUsageByVehicleService(id)
     response.status(200).json(usage)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const getRecentVehicleUsages: RequestHandler = async (request, response, next) => {
+  try {
+    const id = firstValue(request.params.id)
+    const usages = await getRecentVehicleUsagesService(id)
+    response.status(200).json(usages)
   } catch (error) {
     next(error)
   }

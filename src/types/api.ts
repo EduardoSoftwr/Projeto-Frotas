@@ -31,6 +31,14 @@ export interface CurrentUsage extends Usage {
   status: 'IN_USE'
 }
 
+export interface RecentVehicleUsage {
+  id: string
+  userName: string
+  sector: string
+  destination: string
+  endDateTime: string
+}
+
 export interface StartUsagePayload {
   userName: string
   sector: string

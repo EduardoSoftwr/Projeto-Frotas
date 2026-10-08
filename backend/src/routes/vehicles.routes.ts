@@ -7,6 +7,7 @@ import {
   finishVehicleUsage,
   getVehicle,
   getVehicleCurrentUsage,
+  getRecentVehicleUsages,
   getVehicleUsages,
   getVehicleReservations,
   listVehicles,
@@ -18,6 +19,7 @@ export const vehiclesRouter = Router()
 vehiclesRouter.get('/', listVehicles)
 vehiclesRouter.get('/:id', getVehicle)
 vehiclesRouter.get('/:id/current-usage', getVehicleCurrentUsage)
+vehiclesRouter.get('/:id/recent-usages', getRecentVehicleUsages)
 vehiclesRouter.get('/:id/usages', requireAuthentication, requireAdmin, getVehicleUsages)
 vehiclesRouter.post('/:id/usage/start', startVehicleUsage)
 vehiclesRouter.post('/:id/usage/:usageId/finish', finishVehicleUsage)

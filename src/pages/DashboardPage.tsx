@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import AppLayout, { type AppPage } from '../components/AppLayout'
 import CurrentSituation from '../components/CurrentSituation'
 import Icon from '../components/Icon'
-import UsageHistory from '../components/UsageHistory'
+import RecentUsages from '../components/RecentUsages'
 import VehicleAgenda from '../components/VehicleAgenda'
 import VehicleSummary from '../components/VehicleSummary'
 import useFleet from '../context/useFleet'
@@ -13,7 +13,7 @@ interface DashboardPageProps {
 }
 
 function DashboardPage({ onNavigate }: DashboardPageProps) {
-  const { vehicle, usages, activeUsage, canReturnUsage, reservations, createReservation, cancelReservation, reservationsLoading, reservationsError } = useFleet()
+  const { vehicle, recentUsages, recentUsagesLoading, recentUsagesError, activeUsage, canReturnUsage, reservations, createReservation, cancelReservation, reservationsLoading, reservationsError } = useFleet()
   const [notice, setNotice] = useState('')
   const [activeVehicleTab, setActiveVehicleTab] = useState<'overview' | 'agenda'>('overview')
   const [now, setNow] = useState(() => new Date())
@@ -70,12 +70,11 @@ function DashboardPage({ onNavigate }: DashboardPageProps) {
                 <button className="button button--secondary" type="button" onClick={() => onNavigate('history')}><Icon name="history" size={18} /> Histórico</button>
               </div>
               {notice && <div className="inline-notice" role="status"><span>{notice}</span><button type="button" aria-label="Fechar aviso" onClick={() => setNotice('')}>Fechar</button></div>}
-              <UsageHistory usages={usages} onViewAll={() => onNavigate('history')} />
+              <RecentUsages usages={recentUsages} loading={recentUsagesLoading} error={recentUsagesError} />
             </div>
 
             <aside className="dashboard-grid__aside">
               <CurrentSituation status={vehicle.status} activeUsage={activeUsage} />
-              <section className="side-note"><span className="side-note__line" /><p className="eyebrow">FROTA ATIVA</p><strong>{canReturnUsage ? 'Você está utilizando o veículo.' : activeUsage ? 'O veículo está em utilização.' : vehicle.status === 'available' ? 'O veículo está pronto para a próxima utilização.' : 'O veículo está indisponível.'}</strong><span className="side-note__caption">Acompanhe as movimentações por aqui.</span></section>
             </aside>
           </div>
           <footer className="page-footer"><span>Gestão de Frota</span><span>Visão geral do veículo</span></footer>

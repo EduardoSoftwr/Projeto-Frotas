@@ -4,6 +4,7 @@ import type {
   CreateReservationPayload,
   FinishUsagePayload,
   FinishUsageResponse,
+  RecentVehicleUsage,
   StartUsagePayload,
   StartUsageResponse,
   Usage,
@@ -126,6 +127,10 @@ export function getVehicleUsages(vehicleId: string) {
   return request<Usage[]>(`/vehicles/${encodeURIComponent(vehicleId)}/usages`)
 }
 
+export function getRecentVehicleUsages(vehicleId: string) {
+  return request<RecentVehicleUsage[]>(`/vehicles/${encodeURIComponent(vehicleId)}/recent-usages`)
+}
+
 export function getVehicleReservations(vehicleId: string) {
   return request<ApiReservation[]>(`/vehicles/${encodeURIComponent(vehicleId)}/reservations`)
 }
@@ -173,5 +178,15 @@ export function toUiUsage(usage: Usage) {
     endKm: usage.endKm,
     observations: null,
     status: usage.status === 'IN_USE' ? 'EM_UTILIZACAO' as const : 'FINALIZADA' as const,
+  }
+}
+
+export function toUiRecentUsage(usage: RecentVehicleUsage) {
+  return {
+    id: usage.id,
+    user: usage.userName,
+    department: usage.sector,
+    destination: usage.destination,
+    endDateTime: usage.endDateTime,
   }
 }

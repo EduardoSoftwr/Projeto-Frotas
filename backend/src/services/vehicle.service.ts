@@ -181,6 +181,32 @@ export async function getVehicleUsagesService(vehicleId: string) {
   })
 }
 
+export async function getRecentVehicleUsagesService(vehicleId: string) {
+  const id = parseVehicleId(vehicleId)
+  const vehicle = await prisma.vehicle.findUnique({ where: { id }, select: { id: true } })
+
+  if (!vehicle) {
+    throw new HttpError(404, 'VEHICLE_NOT_FOUND', 'Veículo não encontrado.')
+  }
+
+  return prisma.usage.findMany({
+    where: {
+      vehicleId: id,
+      status: UsageStatus.FINISHED,
+      endDateTime: { not: null },
+    },
+    orderBy: { endDateTime: 'desc' },
+    take: 5,
+    select: {
+      id: true,
+      userName: true,
+      sector: true,
+      destination: true,
+      endDateTime: true,
+    },
+  })
+}
+
 export async function startUsageService(vehicleId: string, payload: StartUsageInput) {
   const sanitizedVehicleId = parseVehicleId(vehicleId)
   if (!payload || typeof payload !== 'object') {

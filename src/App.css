@@ -111,11 +111,17 @@
 .situation-list dt { display: flex; align-items: center; gap: 8px; color: #78867f; font-size: 11px; }
 .situation-list dt svg { color: #9aa79f; }
 .situation-list dd { margin: 0; color: #99a49e; font-size: 12px; }
-.side-note { position: relative; overflow: hidden; padding: 17px 16px 16px; background: #edf5f0; border: 1px solid #e3eee7; border-radius: 7px; }
-.side-note__line { position: absolute; inset: 0 auto 0 0; width: 3px; background: #5da67e; }
-.side-note .eyebrow { margin: 0 0 8px; color: #619175; font-size: 9px; }
-.side-note strong { display: block; max-width: 205px; color: #315643; font-family: 'Manrope', sans-serif; font-size: 12px; font-weight: 700; line-height: 1.5; }
-.side-note__caption { display: block; margin-top: 9px; color: #718c7c; font-size: 10px; }
+.recent-usages { overflow: hidden; animation: rise-in 420ms 140ms ease both; }
+.recent-usages__heading { padding: 15px 18px 12px; }
+.recent-usages__heading .eyebrow { margin-bottom: 4px; }
+.recent-usages__list { margin: 0; padding: 0 18px; list-style: none; }
+.recent-usages__item { display: flex; min-width: 0; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid #f0f3f1; }
+.recent-usages__icon { display: grid; width: 28px; height: 28px; flex: 0 0 auto; place-items: center; color: #6c8b79; background: #f0f6f2; border-radius: 5px; }
+.recent-usages__details { display: grid; min-width: 0; flex: 1; gap: 3px; }
+.recent-usages__details strong { overflow: hidden; color: #3a4b42; font-size: 11px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.recent-usages__details > span { overflow: hidden; color: #87938c; font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.recent-usages__date { flex: 0 0 auto; color: #87938c; font-size: 10px; white-space: nowrap; }
+.recent-usages__message { margin: 0; padding: 12px 18px 15px; color: #87938c; font-size: 11px; }
 
 .history-panel { overflow: hidden; animation: rise-in 420ms 140ms ease both; }
 .section-heading--history { padding: 18px 19px 16px; }
@@ -344,7 +350,6 @@
   .metric-card__value { font-size: 20px; }
   .metric-card__value--small { font-size: 10px; }
   .dashboard-grid__aside { grid-template-columns: minmax(0, 1fr); }
-  .side-note { display: none; }
   .section-heading--history { padding: 16px 14px 14px; }
   .usage-table { min-width: 660px; }
   .page-footer { padding-top: 15px; }
