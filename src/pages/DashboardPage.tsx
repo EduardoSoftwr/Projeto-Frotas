@@ -13,7 +13,7 @@ interface DashboardPageProps {
 }
 
 function DashboardPage({ onNavigate }: DashboardPageProps) {
-  const { vehicle, recentUsages, recentUsagesLoading, recentUsagesError, activeUsage, canReturnUsage, reservations, createReservation, cancelReservation, reservationsLoading, reservationsError } = useFleet()
+  const { vehicle, recentUsages, recentUsagesLoading, recentUsagesError, activeUsage, canReturnUsage, reservations, createReservation, cancelReservation, canCancelReservation, reservationsLoading, reservationsError } = useFleet()
   const [notice, setNotice] = useState('')
   const [activeVehicleTab, setActiveVehicleTab] = useState<'overview' | 'agenda'>('overview')
   const [now, setNow] = useState(() => new Date())
@@ -50,6 +50,7 @@ function DashboardPage({ onNavigate }: DashboardPageProps) {
               reservations={reservations}
               onCreateReservation={createReservation}
               onCancelReservation={cancelReservation}
+              canCancelReservation={canCancelReservation}
               reservationsLoading={reservationsLoading}
               reservationsError={reservationsError}
             />

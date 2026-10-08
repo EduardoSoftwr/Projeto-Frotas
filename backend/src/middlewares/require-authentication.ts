@@ -2,30 +2,43 @@ import type { RequestHandler } from 'express'
 import { prisma } from '../lib/prisma.js'
 import { readAuthSession, type PublicUser } from '../services/auth-session.js'
 
+async function getAuthenticatedUser(request: Parameters<RequestHandler>[0]) {
+  const session = readAuthSession(request)
+  if (!session) return null
+
+  const user = await prisma.user.findUnique({
+    where: { id: session.userId },
+    select: { id: true, username: true, email: true, role: true, status: true },
+  })
+  if (!user || user.status !== 'ACTIVE') return null
+
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+  } satisfies PublicUser
+}
+
+export const optionalAuthentication: RequestHandler = async (request, response, next) => {
+  try {
+    const user = await getAuthenticatedUser(request)
+    if (user) response.locals.authUser = user
+    next()
+  } catch (error) {
+    next(error)
+  }
+}
+
 export const requireAuthentication: RequestHandler = async (request, response, next) => {
   try {
-    const session = readAuthSession(request)
-    if (!session) {
+    const user = await getAuthenticatedUser(request)
+    if (!user) {
       response.status(401).json({ error: 'UNAUTHENTICATED', message: 'Autenticação necessária.' })
       return
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.userId },
-      select: { id: true, username: true, email: true, role: true, status: true },
-    })
-    if (!user || user.status !== 'ACTIVE') {
-      response.status(401).json({ error: 'UNAUTHENTICATED', message: 'Autenticação necessária.' })
-      return
-    }
-
-    const publicUser: PublicUser = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      role: user.role,
-    }
-    response.locals.authUser = publicUser
+    response.locals.authUser = user
     next()
   } catch (error) {
     next(error)

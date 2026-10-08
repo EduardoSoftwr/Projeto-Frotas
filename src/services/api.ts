@@ -2,6 +2,7 @@ import type {
   CurrentUsage,
   ApiReservation,
   CreateReservationPayload,
+  CreateReservationResponse,
   FinishUsagePayload,
   FinishUsageResponse,
   RecentVehicleUsage,
@@ -136,16 +137,19 @@ export function getVehicleReservations(vehicleId: string) {
 }
 
 export function createVehicleReservation(vehicleId: string, payload: CreateReservationPayload) {
-  return request<ApiReservation>(`/vehicles/${encodeURIComponent(vehicleId)}/reservations`, {
+  return request<CreateReservationResponse>(`/vehicles/${encodeURIComponent(vehicleId)}/reservations`, {
     method: 'POST',
     body: JSON.stringify(payload),
   })
 }
 
-export function cancelVehicleReservation(vehicleId: string, reservationId: string) {
+export function cancelVehicleReservation(vehicleId: string, reservationId: string, cancelToken?: string) {
   return request<ApiReservation>(
     `/vehicles/${encodeURIComponent(vehicleId)}/reservations/${encodeURIComponent(reservationId)}/cancel`,
-    { method: 'POST' },
+    {
+      method: 'POST',
+      body: JSON.stringify(cancelToken ? { cancelToken } : {}),
+    },
   )
 }
 

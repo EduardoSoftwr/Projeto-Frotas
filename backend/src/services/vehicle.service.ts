@@ -1,4 +1,4 @@
-import { randomBytes } from 'node:crypto'
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 
 import { Prisma, ReservationStatus, UsageStatus, VehicleStatus } from '@prisma/client'
 
@@ -92,6 +92,30 @@ async function lockVehicle(tx: Prisma.TransactionClient, vehicleId: string) {
 function stripSessionToken<T extends { sessionToken?: string }>(usage: T) {
   const { sessionToken: _sessionToken, ...safeUsage } = usage
   return safeUsage
+}
+
+const reservationPublicSelect = {
+  id: true,
+  vehicleId: true,
+  userName: true,
+  date: true,
+  startTime: true,
+  endTime: true,
+  destination: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+} satisfies Prisma.ReservationSelect
+
+function hashReservationCancelToken(token: string) {
+  return createHash('sha256').update(token).digest()
+}
+
+function hasValidReservationCancelToken(token: unknown, expectedHash: string | null) {
+  if (typeof token !== 'string' || token.length === 0 || !expectedHash) return false
+  const actualHash = hashReservationCancelToken(token)
+  const storedHash = Buffer.from(expectedHash, 'hex')
+  return storedHash.length === actualHash.length && timingSafeEqual(storedHash, actualHash)
 }
 
 export async function listVehiclesService() {
@@ -375,16 +399,17 @@ export async function listReservationsService(vehicleId: string, query: Record<s
   return prisma.reservation.findMany({
     where,
     orderBy: [{ date: 'asc' }, { startTime: 'asc' }],
+    select: reservationPublicSelect,
   })
 }
 
 export async function createReservationService(vehicleId: string, payload: CreateReservationInput) {
   const id = parseVehicleId(vehicleId)
-  const userName = ensureText(payload.userName, 'userName')
-  const destination = ensureText(payload.destination, 'destination')
   if (!payload || typeof payload !== 'object') {
     throw new HttpError(400, 'INVALID_RESERVATION', 'Os dados da reserva são obrigatórios.')
   }
+  const userName = ensureText(payload.userName, 'userName')
+  const destination = ensureText(payload.destination, 'destination')
 
   const date = parseDateKey(payload.date)
   const startTime = parseReservationTime(payload.startTime, 'startTime')
@@ -403,8 +428,10 @@ export async function createReservationService(vehicleId: string, payload: Creat
   }
 
   const parsedDate = toDateOnly(date)
+  const cancelToken = randomBytes(32).toString('base64url')
+  const cancelTokenHash = hashReservationCancelToken(cancelToken).toString('hex')
 
-  return prisma.$transaction(async (tx) => {
+  const reservation = await prisma.$transaction(async (tx) => {
     await lockVehicle(tx, id)
     const vehicle = await tx.vehicle.findUnique({ where: { id } })
 
@@ -434,12 +461,21 @@ export async function createReservationService(vehicleId: string, payload: Creat
         endTime,
         destination,
         status: ReservationStatus.ACTIVE,
+        cancelTokenHash,
       },
+      select: reservationPublicSelect,
     })
   })
+
+  return { reservation, cancelToken }
 }
 
-export async function cancelReservationService(vehicleId: string, reservationId: string) {
+export async function cancelReservationService(
+  vehicleId: string,
+  reservationId: string,
+  cancelToken: unknown,
+  isAdmin: boolean,
+) {
   const id = parseVehicleId(vehicleId)
   const reservationKey = reservationId.trim()
 
@@ -459,20 +495,39 @@ export async function cancelReservationService(vehicleId: string, reservationId:
     throw new HttpError(404, 'RESERVATION_NOT_FOUND', 'Essa reserva não pertence ao veículo informado.')
   }
 
-  if (reservation.status === ReservationStatus.CANCELLED) {
-    throw new HttpError(409, 'RESERVATION_ALREADY_CANCELLED', 'Essa reserva já foi cancelada.')
+  if (reservation.status !== ReservationStatus.ACTIVE) {
+    throw new HttpError(409, 'RESERVATION_NOT_ACTIVE', 'Somente reservas ativas podem ser canceladas.')
   }
 
-  const reservationDate = reservation.date.toISOString().slice(0, 10)
-  const brazilNow = brazilDateTimeParts()
-  if (reservationDate < brazilNow.date || (reservationDate === brazilNow.date && reservation.startTime <= brazilNow.time)) {
-    throw new HttpError(409, 'RESERVATION_NOT_FUTURE', 'Somente reservas futuras podem ser canceladas.')
+  if (!isAdmin && !hasValidReservationCancelToken(cancelToken, reservation.cancelTokenHash)) {
+    throw new HttpError(403, 'INVALID_RESERVATION_CANCEL_TOKEN', 'Não foi possível autorizar o cancelamento desta reserva.')
   }
 
-  return prisma.reservation.update({
-    where: { id: reservationKey },
+  if (!isAdmin) {
+    const reservationDate = reservation.date.toISOString().slice(0, 10)
+    const brazilNow = brazilDateTimeParts()
+    if (reservationDate < brazilNow.date || (reservationDate === brazilNow.date && reservation.startTime <= brazilNow.time)) {
+      throw new HttpError(409, 'RESERVATION_NOT_FUTURE', 'Somente reservas futuras podem ser canceladas.')
+    }
+  }
+
+  const updateResult = await prisma.reservation.updateMany({
+    where: { id: reservationKey, vehicleId: id, status: ReservationStatus.ACTIVE },
     data: {
       status: ReservationStatus.CANCELLED,
     },
   })
+
+  if (updateResult.count !== 1) {
+    throw new HttpError(409, 'RESERVATION_NOT_ACTIVE', 'Somente reservas ativas podem ser canceladas.')
+  }
+
+  const cancelledReservation = await prisma.reservation.findUnique({
+    where: { id: reservationKey },
+    select: reservationPublicSelect,
+  })
+  if (!cancelledReservation) {
+    throw new HttpError(404, 'RESERVATION_NOT_FOUND', 'Reserva não encontrada.')
+  }
+  return cancelledReservation
 }

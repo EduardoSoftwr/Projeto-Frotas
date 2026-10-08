@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { requireAdmin, requireAuthentication } from '../middlewares/require-authentication.js'
+import { optionalAuthentication, requireAdmin, requireAuthentication } from '../middlewares/require-authentication.js'
 
 import {
   cancelVehicleReservation,
@@ -25,4 +25,4 @@ vehiclesRouter.post('/:id/usage/start', startVehicleUsage)
 vehiclesRouter.post('/:id/usage/:usageId/finish', finishVehicleUsage)
 vehiclesRouter.get('/:id/reservations', getVehicleReservations)
 vehiclesRouter.post('/:id/reservations', createVehicleReservation)
-vehiclesRouter.post('/:id/reservations/:reservationId/cancel', cancelVehicleReservation)
+vehiclesRouter.post('/:id/reservations/:reservationId/cancel', optionalAuthentication, cancelVehicleReservation)

@@ -8,6 +8,7 @@ interface VehicleAgendaProps {
   reservations: Reservation[]
   onCreateReservation: (payload: CreateReservationPayload) => Promise<void>
   onCancelReservation: (reservationId: string) => Promise<void>
+  canCancelReservation: (reservationId: string, isFuture: boolean) => boolean
   reservationsLoading: boolean
   reservationsError: string
 }
@@ -53,7 +54,7 @@ function formatWeekRange(days: WeekDay[]): string {
   return `${formatReservationDate(getLocalDateKey(first))} a ${formatReservationDate(getLocalDateKey(last))}`
 }
 
-function VehicleAgenda({ reservations, onCreateReservation, onCancelReservation, reservationsLoading, reservationsError }: VehicleAgendaProps) {
+function VehicleAgenda({ reservations, onCreateReservation, onCancelReservation, canCancelReservation, reservationsLoading, reservationsError }: VehicleAgendaProps) {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()))
   const [now, setNow] = useState(() => new Date())
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -261,7 +262,7 @@ function VehicleAgenda({ reservations, onCreateReservation, onCancelReservation,
               ? <div className="agenda-cancel-confirm" role="alert"><span>Deseja cancelar esta reserva?</span>{cancelError && <p className="agenda-form__error">{cancelError}</p>}<button className="button button--danger" type="button" disabled={isCancelling} onClick={() => { void confirmCancellation() }}>{isCancelling ? 'Cancelando…' : 'Confirmar cancelamento'}</button></div>
               : <div className="confirmation-dialog__actions">
                 <button className="button button--secondary" type="button" onClick={() => setSelectedReservation(null)}>Fechar</button>
-                {selectedReservation.status === 'ATIVA' && reservationStartDate(selectedReservation).getTime() > now.getTime() && <button className="agenda-cancel-link" type="button" onClick={() => setIsCancelConfirmationOpen(true)}>Cancelar reserva</button>}
+                {selectedReservation.status === 'ATIVA' && canCancelReservation(selectedReservation.id, reservationStartDate(selectedReservation).getTime() > now.getTime()) && <button className="agenda-cancel-link" type="button" onClick={() => setIsCancelConfirmationOpen(true)}>Cancelar reserva</button>}
               </div>}
           </section>
         </div>

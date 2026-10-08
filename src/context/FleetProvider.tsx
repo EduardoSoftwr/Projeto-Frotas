@@ -3,7 +3,7 @@ import type { ApiReservation, CreateReservationPayload, Vehicle as ApiVehicle, C
 import type { RecentUsage, Reservation, Usage, Vehicle } from '../types/fleet'
 import { cancelVehicleReservation, createVehicleReservation, getCurrentUsage, getFriendlyApiError, getFriendlyReservationApiError, getRecentVehicleUsages, getVehicles, getVehicleReservations, getVehicleUsages, startVehicleUsage, finishVehicleUsage, ApiError, toUiRecentUsage, toUiUsage } from '../services/api'
 import { clearUsageSession, readUsageSession, writeUsageSession, type UsageSession } from '../services/usageSession'
-import { removeStoredValue, storageKeys } from '../utils/storage'
+import { readStoredValue, removeStoredValue, storageKeys, writeStoredValue } from '../utils/storage'
 import { FleetContext, type FleetState } from './FleetContext'
 import useAuth from './useAuth'
 
@@ -26,6 +26,13 @@ function createInitialState(): FleetState {
     recentUsages: [],
     reservations: [],
   }
+}
+
+type ReservationCancelTokens = Record<string, string>
+
+function isReservationCancelTokens(value: unknown): value is ReservationCancelTokens {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    && Object.entries(value).every(([reservationId, token]) => reservationId.length > 0 && typeof token === 'string')
 }
 
 function toUiVehicle(vehicle: ApiVehicle): Vehicle {
@@ -60,6 +67,9 @@ function toUiReservation(reservation: ApiReservation): Reservation {
 function FleetProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   const [state, dispatch] = useReducer(fleetReducer, undefined, createInitialState)
+  const [reservationCancelTokens, setReservationCancelTokens] = useState<ReservationCancelTokens>(
+    () => readStoredValue(storageKeys.reservationCancelTokens, isReservationCancelTokens, {}),
+  )
   const [apiVehicle, setApiVehicle] = useState<ApiVehicle | null>(null)
   const [currentUsage, setCurrentUsage] = useState<CurrentUsage | null>(null)
   const [usageSession, setUsageSession] = useState<UsageSession | null>(readUsageSession)
@@ -229,15 +239,30 @@ function FleetProvider({ children }: { children: ReactNode }) {
   async function createReservation(payload: CreateReservationPayload) {
     const vehicle = apiVehicleRef.current
     if (!vehicle) throw new ApiError(0, 'Aguarde o carregamento do veículo e tente novamente.')
-    await createVehicleReservation(vehicle.id, payload)
+    const result = await createVehicleReservation(vehicle.id, payload)
+    const tokens = { ...reservationCancelTokens, [result.reservation.id]: result.cancelToken }
+    setReservationCancelTokens(tokens)
+    writeStoredValue(storageKeys.reservationCancelTokens, tokens)
     await refreshReservations()
   }
 
   async function cancelReservation(reservationId: string) {
     const vehicle = apiVehicleRef.current
     if (!vehicle) throw new ApiError(0, 'Aguarde o carregamento do veículo e tente novamente.')
-    await cancelVehicleReservation(vehicle.id, reservationId)
+    const cancelToken = user?.role === 'ADMIN' ? undefined : reservationCancelTokens[reservationId]
+    if (user?.role !== 'ADMIN' && !cancelToken) {
+      throw new ApiError(403, 'Este dispositivo não possui autorização para cancelar esta reserva.')
+    }
+    await cancelVehicleReservation(vehicle.id, reservationId, cancelToken)
+    const tokens = { ...reservationCancelTokens }
+    delete tokens[reservationId]
+    setReservationCancelTokens(tokens)
+    writeStoredValue(storageKeys.reservationCancelTokens, tokens)
     await refreshReservations()
+  }
+
+  function canCancelReservation(reservationId: string, isFuture: boolean) {
+    return user?.role === 'ADMIN' || (isFuture && Boolean(reservationCancelTokens[reservationId]))
   }
 
   if (!apiVehicleUi) {
@@ -266,6 +291,7 @@ function FleetProvider({ children }: { children: ReactNode }) {
     finishUsage,
     createReservation,
     cancelReservation,
+    canCancelReservation,
     refreshReservations,
     reservationsLoading,
     reservationsError,

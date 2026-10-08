@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'express'
+import type { PublicUser } from '../services/auth-session.js'
 
 import {
   cancelReservationService,
@@ -117,7 +118,13 @@ export const cancelVehicleReservation: RequestHandler = async (request, response
   try {
     const id = firstValue(request.params.id)
     const reservationId = firstValue(request.params.reservationId)
-    const reservation = await cancelReservationService(id, reservationId)
+    const user = response.locals.authUser as PublicUser | undefined
+    const reservation = await cancelReservationService(
+      id,
+      reservationId,
+      request.body?.cancelToken,
+      user?.role === 'ADMIN',
+    )
     response.status(200).json(reservation)
   } catch (error) {
     next(error)

@@ -77,6 +77,11 @@ export interface ApiReservation {
   updatedAt: string
 }
 
+export interface CreateReservationResponse {
+  reservation: ApiReservation
+  cancelToken: string
+}
+
 export interface CreateReservationPayload {
   userName: string
   date: string

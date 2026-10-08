@@ -80,17 +80,18 @@ model Usage {
 }
 
 model Reservation {
-  id          String            @id @default(cuid())
-  vehicleId   String
-  userName    String
-  date        DateTime          @db.Date
-  startTime   String            @db.VarChar(5)
-  endTime     String            @db.VarChar(5)
-  destination String
-  status      ReservationStatus @default(ACTIVE)
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  vehicle     Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  id              String            @id @default(cuid())
+  vehicleId       String
+  userName        String
+  date            DateTime          @db.Date
+  startTime       String            @db.VarChar(5)
+  endTime         String            @db.VarChar(5)
+  destination     String
+  status          ReservationStatus @default(ACTIVE)
+  cancelTokenHash String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  vehicle         Vehicle           @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
 
   @@index([vehicleId, date, status])
 }
